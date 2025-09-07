@@ -7,19 +7,19 @@
 // 25, 26 (A0, A1)
 // 18, 5, 9 (MOSI, SCK, MISO)
 // 22, 23 (SCL, SDA)
-uint8_t rgbPins[]  = {4, 12, 13, 14, 15, 21};
-uint8_t addrPins[] = {16, 17, 25, 26};
-uint8_t clockPin   = 27; // Must be on same port as rgbPins
-uint8_t latchPin   = 32;
-uint8_t oePin      = 33;
+uint8_t rgbPins[] = {25, 26, 27, 14, 12, 13};
+uint8_t addrPins[] = {23, 19, 5, 17};
+uint8_t clockPin = 16;
+uint8_t latchPin = 4;
+uint8_t oePin = 15;
 
-Adafruit_Protomatter matrix(
-  64,          // Width of matrix (or matrix chain) in pixels
-  1,           // Bit depth, 1-6
-  1, rgbPins,  // # of matrix chains, array of 6 RGB pins for each
-  4, addrPins, // # of address pins (height is inferred), array of pins
-  clockPin, latchPin, oePin, // Other matrix control pins
-  false);      // No double-buffering here (see "doublebuffer" example)
+Adafruit_Protomatter
+    matrix(64,          // Width of matrix (or matrix chain) in pixels
+           1,           // Bit depth, 1-6
+           1, rgbPins,  // # of matrix chains, array of 6 RGB pins for each
+           4, addrPins, // # of address pins (height is inferred), array of pins
+           clockPin, latchPin, oePin, // Other matrix control pins
+           false); // No double-buffering here (see "doublebuffer" example)
 
 void setup(void) {
   Serial.begin(9600);
@@ -28,8 +28,9 @@ void setup(void) {
   ProtomatterStatus status = matrix.begin();
   Serial.print("Protomatter begin() status: ");
   Serial.println((int)status);
-  if(status != PROTOMATTER_OK) {
-    for(;;);
+  if (status != PROTOMATTER_OK) {
+    for (;;)
+      ;
   }
 
   matrix.setRotation(2);
