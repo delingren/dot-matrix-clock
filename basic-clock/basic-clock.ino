@@ -96,6 +96,9 @@ void loop() {
   time_t now = time(nullptr);
   struct tm *timeinfo = localtime(&now);
 
+  // Update time display every second
+  updateTimeDisplay(timeinfo);
+
   // Update the date display when the day changes and on the first run.
   static int day = 0;
   if (timeinfo->tm_mday != day) {
@@ -113,10 +116,28 @@ void loop() {
     Serial.println("Time synchronized.");
   }
 
-  // Update time display every second
-  updateTimeDisplay(timeinfo);
-
   matrix.show();
+}
+
+void updateTimeDisplay(tm *timeinfo) {
+  matrix.setTextSize(2);
+  matrix.setTextColor(color444(15, 15, 15), color444(0, 0, 0));
+
+  // We want to colon to be a little narrow. So print it first and let hour
+  // and minute overlap with its left and right a little, which is blank anyway.
+  static bool colon = true;
+  matrix.setCursor(27, 3);
+  matrix.print(colon ? ":" : " ");
+  colon = !colon;
+
+  char buffer[3];
+  sprintf(buffer, "%02d", timeinfo->tm_hour, timeinfo->tm_hour);
+  matrix.setCursor(5, 3);
+  matrix.print(buffer);
+
+  sprintf(buffer, "%02d", timeinfo->tm_hour, timeinfo->tm_min);
+  matrix.setCursor(39, 3);
+  matrix.print(buffer);
 }
 
 void updateDateDisplay(tm *timeinfo) {
@@ -126,32 +147,19 @@ void updateDateDisplay(tm *timeinfo) {
 
   const char *monthNames[12] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN",
                                 "JUL", "AUG", "SEP", "OCT", "NOV", "DEV"};
-  matrix.setTextColor(color444(0, 255, 0), color444(0, 0, 0));
+  matrix.setTextColor(color444(8, 8, 0), color444(0, 0, 0));
   matrix.setCursor(3, 21);
   matrix.print(monthNames[timeinfo->tm_mon]);
 
-  matrix.setTextColor(color444(15, 0, 15), color444(0, 0, 0));
+  matrix.setTextColor(color444(0, 8, 8), color444(0, 0, 0));
   matrix.setCursor(24, 21);
   sprintf(buffer, "%02d", timeinfo->tm_mday);
   matrix.print(buffer);
 
-  matrix.setTextColor(color444(15, 15, 0), color444(0, 0, 0));
+  matrix.setTextColor(color444(8, 0, 8), color444(0, 0, 0));
   matrix.setCursor(38, 21);
   sprintf(buffer, "%d", timeinfo->tm_year + 1900);
   matrix.print(buffer);
-}
-
-void updateTimeDisplay(tm *timeinfo) {
-  static bool colon = true;
-  char buffer[6];
-
-  sprintf(buffer, colon ? "%02d:%02d" : "%02d %02d", timeinfo->tm_hour,
-          timeinfo->tm_min);
-  matrix.setTextSize(2);
-  matrix.setCursor(3, 3);
-  matrix.setTextColor(color444(15, 0, 0), color444(0, 0, 0));
-  matrix.print(buffer);
-  colon = !colon;
 }
 
 inline uint16_t color444(uint8_t r, uint8_t g, uint8_t b) {
