@@ -1,36 +1,56 @@
-#include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
+#include <Adafruit_Protomatter.h>
 #include <WiFi.h>
 #include <sntp.h>
 #include <time.h>
 
 /**
- * WiFi and NTP setup
+ * Dot matrix panel setup
  */
-const char *ssid = "dlink-ACC9";
-const char *password = "cookiejar";
+uint8_t rgbPins[] = {25, 26, 27, 14, 12, 13};
+uint8_t addrPins[] = {23, 19, 5, 17};
+uint8_t clockPin = 16;
+uint8_t latchPin = 4;
+uint8_t oePin = 15;
 
+Adafruit_Protomatter
+    matrix(64,          // Width of matrix (or matrix chain) in pixels
+           4,           // Bit depth, 1-6
+           1, rgbPins,  // # of matrix chains, array of 6 RGB pins for each
+           4, addrPins, // # of address pins (height is inferred), array of pins
+           clockPin, latchPin, oePin, // Other matrix control pins
+           false); // No double-buffering here (see "doublebuffer" example)
+
+/**
+ * WiFi setup
+ */
+#include "wifi_info.h"
+
+/**
+ * NTP server and timezone setup
+ */
 const char *ntpServer = "north-america.pool.ntp.org";
 const char *timeZone = "PST8PDT,M3.2.0,M11.1.0";
 
 /**
- * Timer setup for flashing colon
+ * Timer setup
  */
 hw_timer_t *timer = NULL;
 volatile SemaphoreHandle_t timerSemaphore;
-
-MatrixPanel_I2S_DMA *matrix;
-
 void ARDUINO_ISR_ATTR onTimer() { xSemaphoreGiveFromISR(timerSemaphore, NULL); }
 
 void setup() {
   Serial.begin(115200);
 
-  HUB75_I2S_CFG config(64, 32, 1);
-  config.driver = HUB75_I2S_CFG::FM6124;
-  matrix = new MatrixPanel_I2S_DMA(config);
-  matrix->begin();
-  matrix->setRotation(2);
-  // delay(500);
+  ProtomatterStatus status = matrix.begin();
+  Serial.print("Initializing dot matrix panel. Status: ");
+  Serial.println((int)status);
+  if (status != PROTOMATTER_OK) {
+    while (true)
+      ;
+  }
+  matrix.setRotation(2);
+
+  // TODO: display the following info on the panel.
 
   // Connect to WiFi
   WiFi.mode(WIFI_STA);
@@ -42,7 +62,8 @@ void setup() {
     delay(1000);
     Serial.print(".");
   }
-  Serial.println("\nWiFi connected.");
+  Serial.print("\nWiFi connected: ");
+  Serial.println(WiFi.localIP());
 
   // Sync time with NTP server
   configTzTime(timeZone, ntpServer);
@@ -53,10 +74,12 @@ void setup() {
     delay(1000);
     Serial.print(".");
   }
-  Serial.println("\nTime synchronized.");
+  Serial.print("\nTime synchronized: ");
+  Serial.println(time(nullptr));
 
-  // Set up timer to trigger flashing
+  // Set up timer to trigger an update every second
   timerSemaphore = xSemaphoreCreateBinary();
+  // Set timer resolution to 1Mhz; trigger the timer ervery 1M cycles (1s).
   timer = timerBegin(/* frequency = */ 1000000);
   timerAttachInterrupt(timer, &onTimer);
   timerAlarm(timer, /* alarm_value = */
@@ -92,28 +115,30 @@ void loop() {
 
   // Update time display every second
   updateTimeDisplay(timeinfo);
+
+  matrix.show();
 }
 
 void updateDateDisplay(tm *timeinfo) {
   char buffer[5];
 
-  matrix->setTextSize(1);
+  matrix.setTextSize(1);
 
   const char *monthNames[12] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN",
                                 "JUL", "AUG", "SEP", "OCT", "NOV", "DEV"};
-  matrix->setTextColor(matrix->color444(0, 15, 0), matrix->color444(0, 0, 0));
-  matrix->setCursor(3, 21);
-  matrix->print(monthNames[timeinfo->tm_mon]);
+  matrix.setTextColor(color444(0, 255, 0), color444(0, 0, 0));
+  matrix.setCursor(3, 21);
+  matrix.print(monthNames[timeinfo->tm_mon]);
 
-  matrix->setTextColor(matrix->color444(15, 0, 15), matrix->color444(0, 0, 0));
-  matrix->setCursor(24, 21);
+  matrix.setTextColor(color444(15, 0, 15), color444(0, 0, 0));
+  matrix.setCursor(24, 21);
   sprintf(buffer, "%02d", timeinfo->tm_mday);
-  matrix->print(buffer);
+  matrix.print(buffer);
 
-  matrix->setTextColor(matrix->color444(15, 15, 0), matrix->color444(0, 0, 0));
-  matrix->setCursor(38, 21);
+  matrix.setTextColor(color444(15, 15, 0), color444(0, 0, 0));
+  matrix.setCursor(38, 21);
   sprintf(buffer, "%d", timeinfo->tm_year + 1900);
-  matrix->print(buffer);
+  matrix.print(buffer);
 }
 
 void updateTimeDisplay(tm *timeinfo) {
@@ -122,9 +147,13 @@ void updateTimeDisplay(tm *timeinfo) {
 
   sprintf(buffer, colon ? "%02d:%02d" : "%02d %02d", timeinfo->tm_hour,
           timeinfo->tm_min);
-  matrix->setTextSize(2);
-  matrix->setCursor(3, 3);
-  matrix->setTextColor(matrix->color444(15, 0, 0), matrix->color444(0, 0, 0));
-  matrix->print(buffer);
+  matrix.setTextSize(2);
+  matrix.setCursor(3, 3);
+  matrix.setTextColor(color444(15, 0, 0), color444(0, 0, 0));
+  matrix.print(buffer);
   colon = !colon;
+}
+
+inline uint16_t color444(uint8_t r, uint8_t g, uint8_t b) {
+  return ((r & 0x0F) << 12) | ((g & 0x0F) << 7) | ((b & 0x0F) << 1);
 }
