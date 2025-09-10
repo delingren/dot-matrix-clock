@@ -123,7 +123,7 @@ void updateTimeDisplay(tm *timeinfo) {
   matrix.setTextSize(2);
   matrix.setTextColor(color555(31, 31, 31), 0);
 
-  // We want to colon to be a little narrow. So print it first and let hour
+  // We want the colon to be a little narrow. So print it first and let hour
   // and minute overlap with its left and right a little, which is blank anyway.
   static bool colon = true;
   matrix.setCursor(27, 2);
@@ -152,9 +152,11 @@ void updateDateDisplay(tm *timeinfo) {
     if (i == timeinfo->tm_wday) {
       color = i == 0 ? color555(31, 0, 0) : color555(0, 31, 0);
     } else {
-      color = i == 0 ? color555(1, 0, 0) : color555(1, 1, 1);
+      color = i == 0 ? color555(1, 0, 0) : color555(0, 1, 0);
     }
-    matrix.fillRect(2 + i * 9, 20, 6, 2, color);
+
+    int height = (i == timeinfo->tm_wday) ? 2 : 1;
+    matrix.fillRect(2 + i * 9, 20, 6, height, color);
   }
 
   char buffer[5];
@@ -167,7 +169,7 @@ void updateDateDisplay(tm *timeinfo) {
   matrix.print(monthNames[timeinfo->tm_mon]);
 
   matrix.setTextColor(color555(0, 16, 16), 0);
-  matrix.setCursor(24, 23);
+  matrix.setCursor(23, 23);
   sprintf(buffer, "%02d", timeinfo->tm_mday);
   matrix.print(buffer);
 
