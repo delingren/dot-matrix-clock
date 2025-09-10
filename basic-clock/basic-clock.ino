@@ -130,14 +130,11 @@ void updateTimeDisplay(tm *timeinfo) {
   matrix.print(colon ? ":" : " ");
   colon = !colon;
 
-  char buffer[3];
-  sprintf(buffer, "%02d", timeinfo->tm_hour);
   matrix.setCursor(5, 2);
-  matrix.print(buffer);
+  matrix.printf("%02d", timeinfo->tm_hour);
 
-  sprintf(buffer, "%02d", timeinfo->tm_min);
   matrix.setCursor(37, 2);
-  matrix.print(buffer);
+  matrix.printf("%02d", timeinfo->tm_min);
 
   // Draw a seconds bar under the time. 0 seconds is full.
   int width = 1 + (59 + timeinfo->tm_sec) % 60;
@@ -155,11 +152,11 @@ void updateDateDisplay(tm *timeinfo) {
       color = i == 0 ? color555(1, 0, 0) : color555(0, 1, 0);
     }
 
-    int height = (i == timeinfo->tm_wday) ? 2 : 1;
-    matrix.fillRect(2 + i * 9, 20, 6, height, color);
+    matrix.fillRect(/* x= */ 2 + i * 9, /* y= */ 20, /* w= */ 6,
+                    /* height= */ 2, color);
   }
 
-  char buffer[5];
+  // Month, day, year
   matrix.setTextSize(1);
 
   const char *monthNames[12] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN",
@@ -170,13 +167,11 @@ void updateDateDisplay(tm *timeinfo) {
 
   matrix.setTextColor(color555(0, 16, 16), 0);
   matrix.setCursor(23, 23);
-  sprintf(buffer, "%02d", timeinfo->tm_mday);
-  matrix.print(buffer);
+  matrix.printf("%02d", timeinfo->tm_mday);
 
   matrix.setTextColor(color555(16, 0, 16), 0);
   matrix.setCursor(38, 23);
-  sprintf(buffer, "%d", timeinfo->tm_year + 1900);
-  matrix.print(buffer);
+  matrix.printf("%d", timeinfo->tm_year + 1900);
 }
 
 inline uint16_t color555(uint8_t r, uint8_t g, uint8_t b) {
