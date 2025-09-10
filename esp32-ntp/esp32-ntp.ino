@@ -2,9 +2,7 @@
 #include <sntp.h>
 #include <time.h>
 
-// Change to your own WiFi info
-const char *ssid = "dlink-ACC9";
-const char *password = "cookiejar";
+#include "wifi_info.h"
 
 // https://www.ntppool.org/zone/north-america, or use a corporate server such as
 // time.apple.com, time.google.com, time.windows.com
