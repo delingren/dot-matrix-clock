@@ -14,7 +14,7 @@ uint8_t oePin = 15;
 
 Adafruit_Protomatter
     matrix(64,          // Width of matrix (or matrix chain) in pixels
-           4,           // Bit depth, 1-6
+           5,           // Bit depth, 1-6
            1, rgbPins,  // # of matrix chains, array of 6 RGB pins for each
            4, addrPins, // # of address pins (height is inferred), array of pins
            clockPin, latchPin, oePin, // Other matrix control pins
@@ -121,47 +121,62 @@ void loop() {
 
 void updateTimeDisplay(tm *timeinfo) {
   matrix.setTextSize(2);
-  matrix.setTextColor(color444(15, 15, 15), color444(0, 0, 0));
+  matrix.setTextColor(color555(31, 31, 31), 0);
 
   // We want to colon to be a little narrow. So print it first and let hour
   // and minute overlap with its left and right a little, which is blank anyway.
   static bool colon = true;
-  matrix.setCursor(27, 3);
+  matrix.setCursor(27, 2);
   matrix.print(colon ? ":" : " ");
   colon = !colon;
 
   char buffer[3];
-  sprintf(buffer, "%02d", timeinfo->tm_hour, timeinfo->tm_hour);
-  matrix.setCursor(5, 3);
+  sprintf(buffer, "%02d", timeinfo->tm_hour);
+  matrix.setCursor(5, 2);
   matrix.print(buffer);
 
-  sprintf(buffer, "%02d", timeinfo->tm_hour, timeinfo->tm_min);
-  matrix.setCursor(39, 3);
+  sprintf(buffer, "%02d", timeinfo->tm_min);
+  matrix.setCursor(37, 2);
   matrix.print(buffer);
+
+  // Draw a seconds bar under the time. 0 seconds is full.
+  int width = 1 + (59 + timeinfo->tm_sec) % 60;
+  matrix.fillRect(2, 17, width, 2, color555(0, 0, 31));
+  matrix.fillRect(2 + width, 17, 60 - width, 2, color555(0, 0, 1));
 }
 
 void updateDateDisplay(tm *timeinfo) {
-  char buffer[5];
+  // Day of the week indicator
+  for (int i = 0; i < 7; i++) {
+    uint16_t color;
+    if (i == timeinfo->tm_wday) {
+      color = i == 0 ? color555(31, 0, 0) : color555(0, 31, 0);
+    } else {
+      color = i == 0 ? color555(1, 0, 0) : color555(1, 1, 1);
+    }
+    matrix.fillRect(2 + i * 9, 20, 6, 2, color);
+  }
 
+  char buffer[5];
   matrix.setTextSize(1);
 
   const char *monthNames[12] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN",
                                 "JUL", "AUG", "SEP", "OCT", "NOV", "DEV"};
-  matrix.setTextColor(color444(8, 8, 0), color444(0, 0, 0));
-  matrix.setCursor(3, 21);
+  matrix.setTextColor(color555(16, 16, 0), 0);
+  matrix.setCursor(3, 23);
   matrix.print(monthNames[timeinfo->tm_mon]);
 
-  matrix.setTextColor(color444(0, 8, 8), color444(0, 0, 0));
-  matrix.setCursor(24, 21);
+  matrix.setTextColor(color555(0, 16, 16), 0);
+  matrix.setCursor(24, 23);
   sprintf(buffer, "%02d", timeinfo->tm_mday);
   matrix.print(buffer);
 
-  matrix.setTextColor(color444(8, 0, 8), color444(0, 0, 0));
-  matrix.setCursor(38, 21);
+  matrix.setTextColor(color555(16, 0, 16), 0);
+  matrix.setCursor(38, 23);
   sprintf(buffer, "%d", timeinfo->tm_year + 1900);
   matrix.print(buffer);
 }
 
-inline uint16_t color444(uint8_t r, uint8_t g, uint8_t b) {
-  return ((r & 0x0F) << 12) | ((g & 0x0F) << 7) | ((b & 0x0F) << 1);
+inline uint16_t color555(uint8_t r, uint8_t g, uint8_t b) {
+  return ((r & 0x1F) << 11) | ((g & 0x1F) << 6) | (b & 0x1F);
 }
