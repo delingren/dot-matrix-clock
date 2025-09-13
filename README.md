@@ -69,9 +69,11 @@ Here is a [tutorial](https://lastminuteengineers.com/esp32-ntp-server-date-time-
 
 Now, we want to introduce a very important concept in all things computer related. Interrupts! So far, all your Arduino code has been 'linear', meaning you do one thing at a time, then move on to the next. If you want to control the timing, you use `delay()`. Although this is useful, it has its limitations. It's very hard to control the exact timing. In our case, we want to update our display exactly once a second. Not 900 ms, not 1100 ms, exactly 1000 ms. `delay(1000)` won't work well here, because you don't know how long your code in `loop()` takes to run. Fortunately, there is another way to precisely control timing. We can set an alarm clock. Once it expires, it runs a piece of code, called an interupt handler or interupt service routine. Take a look at this [code example](./esp32-timer/) to learn how to set up a repeating alarm clock that fires once a second.
 
+Pay attention to a digital clock. Normally, it updates the display once a second. In addition, if flashes the colon between hour and minute once a second too, turning it on and off. Here is a [code example](./esp32-flash/) demonstrating the concept.
+
 ### Putting it together
 
-Now we have all the necessary hardware and software. It's time to put everything together on a breadboard, and write the code to display the time and date! The three code examples listed above should have all the APIs you need. You might want to take advantage of `Adafruit_Protomatter::printf()` as well.
+Now we have all the necessary hardware and software. It's time to put everything together on a breadboard, and write the code to display the time and date! The code examples listed above should have all the APIs you need. You might want to take advantage of `Adafruit_Protomatter::printf()` as well.
 
 ![clock](./media/IMG_1597.jpeg)
 
