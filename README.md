@@ -97,3 +97,8 @@ In this project, we have learned:
 * How to connect to WiFi on an ESP32.
 * How to sync up real time with an NTP server.
 * How to perform a task when a timer expires.
+
+With all this knowledge in hand, the possibilities of application is endless. They are only bound by your imagination! As a starter, I challenge you to make a Christmas countdown clock!
+
+![xmas-countdown](./media/xmas-countdown.mov)
+
