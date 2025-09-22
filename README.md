@@ -39,7 +39,7 @@ To connect the panel to the ESP32, Let's use these connections, which have been 
 
 Of the three `GND` pins on the panel, you only need to connect one of them. They are all connected internally. But it doesn't hurt to connect them all. Triple check your connections before powering up anything. Or you risk damaging the panel. Ask me how I know!
 
-Unlike the tiny TFT display you have worked with before, this panel is much more power hungry and should not be powered by the USB port from your computer. Drawing too much current could damage your computer! Let's use an external 5V power supply. With my sketch, I measured about 400 mA going through the display panel. I have read that when all dots are at the maximum brightness, it could draw 3 Ampres. So let's use a laptop USB PD charger. USB PD provides up to 3 ampres at 5V. We are going to use a USB C breakout board with 5V [triggerd](https://learn.adafruit.com/usb-pd-hacks/things-to-know). Make sure you power up the panel before powering up the microcontroller, otherwise the panel will be in a weird state and won't display correctly.
+Unlike the tiny TFT display you have worked with before, this panel is much more power hungry and should not be powered by the USB port from your computer. Drawing too much current could damage your computer! Let's use an external 5V power supply. I tried to light up every dot at its marximum brightness and it drew almost 3 Ampres. So let's use a laptop USB PD charger, which provides exactly 3A at 5V. We are going to use a USB C breakout board with 5V [triggerd](https://learn.adafruit.com/usb-pd-hacks/things-to-know). Make sure you power up the panel before powering up the microcontroller, otherwise the panel will be in a weird state and won't display correctly.
 
 ![power](./media/IMG_1596.jpeg)
 
@@ -88,6 +88,8 @@ An RTC module is a simple device that keeps time with a button battery. We are g
 ## Assembly
 
 Once you have written the code and verified everything on a breadboard, let's solder up everything on a perf board, mount it on the back, and make a hanger so that you can hang it on your window for passersby to see your work!
+
+We can also use the same power source to power the panel itself and the microcontroller. I have soldered two wire posts on the perf baord and marked them red (+5V) and black (GND). You can just connect them to the USB C breakout board. One important caveat though. When everything is powered by the external power source, *DO NOT* connect the microcontroller to your computer using a USB C cable, since that will connect the external power source to your computer's USB port. Although they both *supposed* to be 5V, even a small difference in voltage could result in unwanted current flow.
 
 ## Beyond the basic clock
 
